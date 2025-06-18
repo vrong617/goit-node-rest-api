@@ -1,25 +1,34 @@
-import contactsRepository from "../repositories/contactsRepository.js";
+import Contact from "../models/contact.js";
 
 export async function listContacts() {
-    return await contactsRepository.getAll();
+    return await Contact.findAll();
 }
 
 export async function getContactById(contactId) {
-    return await contactsRepository.getById(contactId);
+    return await Contact.findByPk(contactId);
 }
 
 export async function addContact(name, email, phone) {
-    return await contactsRepository.create({name, email, phone});
+    return await Contact.create({name, email, phone});
 }
 
 export async function updateContact(contactId, updatedData) {
-    return await contactsRepository.update(contactId, updatedData);
+    const [rowsUpdated, [updatedContact]] = await Contact.update(updatedData, {
+        where: {id: contactId}, returning: true,
+    });
+    return rowsUpdated ? updatedContact : null;
 }
 
 export async function removeContact(contactId) {
-    return await contactsRepository.remove(contactId);
+    const contact = await getContactById(contactId);
+    if (!contact) return null;
+    await contact.destroy();
+    return contact;
 }
 
 export async function updateStatusContact(contactId, favoriteValue) {
-    return await contactsRepository.updateFavorite(contactId, favoriteValue);
+    const [rowsUpdated, [updatedContact]] = await Contact.update({favorite: favoriteValue}, {
+        where: {id: contactId}, returning: true
+    });
+    return rowsUpdated ? updatedContact : null;
 }

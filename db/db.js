@@ -1,4 +1,7 @@
 import {Sequelize} from "sequelize";
+import { config } from 'dotenv';
+config();
+const { DB_NAME, DB_HOST, DB_USER, DB_PORT, DB_PASSWORD } = process.env;
 
 class Database {
     constructor() {
@@ -6,9 +9,9 @@ class Database {
             return Database.instance;
         }
 
-        this.sequelize = new Sequelize("goitnode", "anton", "DNmdeMDfZ7SqtA2TcB9XIhBQ2pXfD7yN", {
-            host: "dpg-culm82ggph6c73df16bg-a.virginia-postgres.render.com",
-            port: 5432,
+        this.sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+            host: DB_HOST,
+            port: DB_PORT,
             dialect: "postgres",
             dialectOptions: {
                 ssl: {
@@ -27,6 +30,7 @@ class Database {
     async _connect() {
         try {
             await this.sequelize.authenticate();
+            await this.sequelize.sync({force: true});
             console.log("Database connection successful");
         } catch (error) {
             console.error("Database connection error:", error.message);
