@@ -3,7 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 
 import contactsRouter from "./routes/contactsRouter.js";
-import authRouter from "./routes/authRoutes.js"; // 🔹 додано
+import authRouter from "./routes/authRoutes.js";
 
 const app = express();
 
