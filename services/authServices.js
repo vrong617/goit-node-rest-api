@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/users.js";
 import HttpError from "../helpers/HttpError.js";
+import gravatar from "gravatar";
 
 const SECRET_KEY = process.env.JWT_SECRET || "defaultsecret";
 
@@ -11,7 +12,9 @@ export const registerUser = async ({ email, password }) => {
     throw HttpError(409, "Email in use");
   }
 
-  const newUser = await User.create({ email, password });
+  const avatarURL = gravatar.url(email, { s: "250", d: "retro" }, true);
+
+  const newUser = await User.create({ email, password, avatarURL });
 
   return {
     email: newUser.email,
@@ -52,5 +55,6 @@ export const getCurrentUser = (user) => {
   return {
     email: user.email,
     subscription: user.subscription,
+    avatarURL: user.avatarURL,
   };
 };
