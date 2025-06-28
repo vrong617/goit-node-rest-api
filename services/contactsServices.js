@@ -1,34 +1,49 @@
 import Contact from "../models/contact.js";
+import HttpError from "../helpers/HttpError.js";
 
-export async function listContacts() {
-    return await Contact.findAll();
-}
+export const listContacts = async (userId) => {
+  const contacts = await Contact.findAll({ where: { owner: userId } });
+  return contacts;
+};
 
-export async function getContactById(contactId) {
-    return await Contact.findByPk(contactId);
-}
+export const getContactById = async (id, userId) => {
+  const contact = await Contact.findOne({ where: { id, owner: userId } });
+  if (!contact) {
+    throw HttpError(404, "Contact not found");
+  }
+  return contact;
+};
 
-export async function addContact(name, email, phone) {
-    return await Contact.create({name, email, phone});
-}
+export const addContact = async (data, userId) => {
+  const newContact = await Contact.create({ ...data, owner: userId });
+  return newContact;
+};
 
-export async function updateContact(contactId, updatedData) {
-    const [rowsUpdated, [updatedContact]] = await Contact.update(updatedData, {
-        where: {id: contactId}, returning: true,
-    });
-    return rowsUpdated ? updatedContact : null;
-}
+export const removeContact = async (id, userId) => {
+  const deletedCount = await Contact.destroy({ where: { id, owner: userId } });
+  if (deletedCount === 0) {
+    throw HttpError(404, "Contact not found");
+  }
+};
 
-export async function removeContact(contactId) {
-    const contact = await getContactById(contactId);
-    if (!contact) return null;
-    await contact.destroy();
-    return contact;
-}
+export const updateContact = async (id, data, userId) => {
+  const [count, [contact]] = await Contact.update(data, {
+    where: { id, owner: userId },
+    returning: true,
+  });
+  if (count === 0) {
+    throw HttpError(404, "Contact not found");
+  }
+  return contact;
+};
 
-export async function updateStatusContact(contactId, favoriteValue) {
-    const [rowsUpdated, [updatedContact]] = await Contact.update({favorite: favoriteValue}, {
-        where: {id: contactId}, returning: true
-    });
-    return rowsUpdated ? updatedContact : null;
-}
+export const updateStatusContact = async (id, favorite, userId) => {
+  const [count, [contact]] = await Contact.update({ favorite }, {
+    where: { id, owner: userId },
+    returning: true,
+  });
+  if (count === 0) {
+    throw HttpError(404, "Contact not found");
+  }
+  return contact;
+};
