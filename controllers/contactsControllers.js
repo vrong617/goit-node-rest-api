@@ -1,103 +1,62 @@
 import {
-    addContact, getContactById, listContacts, removeContact, updateContact, updateStatusContact,
+  listContacts,
+  getContactById,
+  addContact,
+  removeContact,
+  updateContact,
+  updateStatusContact,
 } from "../services/contactsServices.js";
-import HttpError from "../helpers/HttpError.js";
 
-export const getAllContacts = async (req, res) => {
+export const getAllContacts = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const contacts = await Contact.findAll({ where: { owner: userId } });
+    const contacts = await listContacts(req.user.id);
     res.json(contacts);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-export const getOneContact = async (req, res) => {
+export const getOneContact = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-
-    const contact = await Contact.findOne({ where: { id, owner: userId } });
-    if (!contact) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-
+    const contact = await getContactById(req.params.id, req.user.id);
     res.json(contact);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-export const createContact = async (req, res) => {
+export const createContact = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const newContact = await Contact.create({ ...req.body, owner: userId });
+    const newContact = await addContact(req.body, req.user.id);
     res.status(201).json(newContact);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-export const updateContactController = async (req, res) => {
+export const updateContactController = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-
-    const [updatedCount, [updatedContact]] = await Contact.update(
-      req.body,
-      {
-        where: { id, owner: userId },
-        returning: true,
-      }
-    );
-
-    if (updatedCount === 0) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-
-    res.json(updatedContact);
+    const updated = await updateContact(req.params.id, req.body, req.user.id);
+    res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-export const deleteContact = async (req, res) => {
+export const deleteContact = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-
-    const deletedCount = await Contact.destroy({ where: { id, owner: userId } });
-    if (deletedCount === 0) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-
+    await removeContact(req.params.id, req.user.id);
     res.status(204).send();
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-export const updateFavoriteController = async (req, res) => {
+export const updateFavoriteController = async (req, res, next) => {
   try {
-    const { contactId } = req.params;
-    const userId = req.user.id;
-
-    const [updatedCount, [updatedContact]] = await Contact.update(
-      { favorite: req.body.favorite },
-      {
-        where: { id: contactId, owner: userId },
-        returning: true,
-      }
-    );
-
-    if (updatedCount === 0) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-
-    res.json(updatedContact);
+    const updated = await updateStatusContact(req.params.contactId, req.body.favorite, req.user.id);
+    res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
-

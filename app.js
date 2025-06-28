@@ -19,8 +19,18 @@ app.use((_, res) => {
 });
 
 app.use((err, req, res, next) => {
-    const { status = 500, message = "Server error" } = err;
-    res.status(status).json({ message });
+    console.error(`[ERROR] ${err.status || 500}: ${err.message}`);
+
+    if (!err.status) {
+        console.error("[ERROR] Stack Trace:", err.stack);
+    }
+
+    const status = err.status || 500;
+    const message = err.message || "Server error";
+
+    res.status(status).json({message});
+
+    next();
 });
 
 app.listen(3000, () => {
