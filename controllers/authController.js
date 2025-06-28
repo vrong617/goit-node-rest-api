@@ -5,6 +5,8 @@ import {
   getCurrentUser,
 } from "../services/authServices.js";
 
+import { processAndSaveAvatar } from "../services/avatarService.js";
+
 export const register = async (req, res, next) => {
   try {
     const user = await registerUser(req.body);
@@ -36,6 +38,15 @@ export const getCurrent = async (req, res, next) => {
   try {
     const user = getCurrentUser(req.user);
     res.status(200).json(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateAvatar = async (req, res, next) => {
+  try {
+    const avatarURL = await processAndSaveAvatar(req.file, req.user.id);
+    res.status(200).json({ avatarURL });
   } catch (err) {
     next(err);
   }
