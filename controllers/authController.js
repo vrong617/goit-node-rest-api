@@ -5,17 +5,7 @@ import {
   getCurrentUser,
 } from "../services/authServices.js";
 
-import path from "path";
-import fs from "fs/promises";
-import { fileURLToPath } from "url";
-import HttpError from "../helpers/HttpError.js";
-import User from "../models/users.js";
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const avatarsDir = path.join(__dirname, "../public/avatars");
+import { processAndSaveAvatar } from "../services/avatarService.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -55,22 +45,7 @@ export const getCurrent = async (req, res, next) => {
 
 export const updateAvatar = async (req, res, next) => {
   try {
-    if (!req.file) {
-      throw HttpError(400, "Avatar file is required");
-    }
-
-    const { path: tempPath, originalname } = req.file;
-    const ext = path.extname(originalname);
-    const fileName = `${req.user.id}${ext}`;
-    const finalPath = path.join(avatarsDir, fileName);
-
-    await fs.mkdir(avatarsDir, { recursive: true });
-    await fs.rename(tempPath, finalPath);
-
-    const avatarURL = `/avatars/${fileName}`;
-
-    await User.update({ avatarURL }, { where: { id: req.user.id } });
-
+    const avatarURL = await processAndSaveAvatar(req.file, req.user.id);
     res.status(200).json({ avatarURL });
   } catch (err) {
     next(err);
