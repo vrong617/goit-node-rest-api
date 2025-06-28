@@ -64,6 +64,7 @@ export const updateAvatar = async (req, res, next) => {
     const fileName = `${req.user.id}${ext}`;
     const finalPath = path.join(avatarsDir, fileName);
 
+    await fs.mkdir(avatarsDir, { recursive: true });
     await fs.rename(tempPath, finalPath);
 
     const avatarURL = `/avatars/${fileName}`;
